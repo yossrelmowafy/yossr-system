@@ -243,7 +243,13 @@
     <div id="student-portal" class="hidden min-h-screen flex items-center justify-center p-4">
         <div class="bg-white/95 backdrop-blur p-8 rounded-2xl shadow-2xl w-full max-w-md text-center space-y-4">
             <h2 class="text-xl font-bold text-blue-600">بوابة الطالب الشخصية</h2>
-            <div id="portal-content" class="space-y-3">جاري التحقق من بيانات الكود...</div>
+            <div id="portal-content" class="space-y-3">
+                <div class="animate-pulse flex flex-col items-center space-y-2">
+                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+                جاري جلب بيانات الطالب من السحابة...
+            </div>
         </div>
     </div>
 
@@ -328,8 +334,8 @@
         let pendingRequests = [];
         let attendanceLog = [];
 
-        // تحميل البيانات (سحابياً)
-        function loadData() {
+        // تحميل البيانات (سحابياً) مع التحقق الفوري لصفحة الطالب
+        function loadData(callback) {
             if (useCloud && db) {
                 db.ref('data').on('value', (snapshot) => {
                     const val = snapshot.val() || {};
@@ -338,23 +344,18 @@
                     pendingRequests = val.pendingRequests || [];
                     attendanceLog = val.attendanceLog || [];
                     
-                    // تحديث الواجهة إذا كان المشرف مسجل دخول
                     if(!document.getElementById('dashboard').classList.contains('hidden')) {
                         renderAll();
                     }
                     
-                    // لو الطالب فاتح بـ QR وعليها كود
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const studentCode = urlParams.get('student');
-                    if (studentCode && !document.getElementById('student-portal').classList.contains('hidden')) {
-                        renderStudentPortal(studentCode);
-                    }
+                    if (callback) callback();
                 });
             } else {
                 students = JSON.parse(localStorage.getItem('students')) || [];
                 subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
                 pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
                 attendanceLog = JSON.parse(localStorage.getItem('attendanceLog')) || [];
+                if (callback) callback();
             }
         }
 
@@ -370,14 +371,18 @@
         }
 
         window.onload = function() {
-            loadData();
             const urlParams = new URLSearchParams(window.location.search);
             const studentCode = urlParams.get('student');
 
             if (studentCode) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('student-portal').classList.remove('hidden');
-                // يتم استدعاء بورتال الطالب بعد تحميل قاعدة البيانات سحابياً
+                // الانتظار حتى تحميل البيانات من السحابة تماماً ثم معالجة الكود
+                loadData(() => {
+                    renderStudentPortal(studentCode);
+                });
+            } else {
+                loadData();
             }
         };
 
@@ -748,7 +753,7 @@
             alert(`تم تسجيل الغياب لـ ${count} طالب لم يحضروا اليوم.`);
         }
 
-        // بوابة الطالب التي تفتح عندما يمسح الكود بكاميرته
+        // بوابة الطالب مع الانتظار لجلب البيانات سحابياً بشكل صحيح
         function renderStudentPortal(code) {
             const portal = document.getElementById('portal-content');
             
@@ -756,8 +761,8 @@
 
             if (!student) {
                 portal.innerHTML = `
-                    <div class="bg-red-100 text-red-700 p-4 rounded-xl font-bold">عذراً، هذا الكود غير مسجل في النظام.</div>
-                    <p class="text-xs text-gray-500">الرجاء مراجعة مستر يسر لإضافة الكود الخاص بك.</p>
+                    <div class="bg-red-100 text-red-700 p-4 rounded-xl font-bold">عذراً، هذا الكود (${code}) غير مسجل في قاعدة البيانات.</div>
+                    <p class="text-xs text-gray-500 mt-2">تأكد من إضافة هذا الطالب من لوحة التحكم الرئيسية أولاً.</p>
                 `;
                 return;
             }
