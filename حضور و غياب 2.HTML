@@ -334,7 +334,7 @@
         let pendingRequests = [];
         let attendanceLog = [];
 
-        // تحميل البيانات (سحابياً) مع التحقق الفوري لصفحة الطالب
+        // تحميل البيانات (سحابياً)
         function loadData(callback) {
             if (useCloud && db) {
                 db.ref('data').on('value', (snapshot) => {
@@ -371,13 +371,29 @@
         }
 
         window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const studentCode = urlParams.get('student');
+            // فحص دقيق للرابط لاستخراج كود الطالب بغض النظر عن طريقة كتابة الرابط
+            const fullUrl = window.location.href;
+            let studentCode = null;
+
+            if (fullUrl.includes('?student=')) {
+                studentCode = fullUrl.split('?student=')[1].split('&')[0];
+            } else if (fullUrl.includes('&student=')) {
+                studentCode = fullUrl.split('&student=')[1].split('&')[0];
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                studentCode = urlParams.get('student');
+            }
+
+            if (studentCode) {
+                studentCode = decodeURIComponent(studentCode.trim());
+            }
 
             if (studentCode) {
                 document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
                 document.getElementById('student-portal').classList.remove('hidden');
-                // الانتظار حتى تحميل البيانات من السحابة تماماً ثم معالجة الكود
+                
+                // تحميل البيانات فوراً ثم فتح بوابة الطالب وتثبيت الحضور
                 loadData(() => {
                     renderStudentPortal(studentCode);
                 });
@@ -602,7 +618,8 @@
 
             filtered.forEach((s) => {
                 const actualIdx = students.indexOf(s);
-                const studentUrl = window.location.origin + window.location.pathname + '?student=' + s.code;
+                const baseUrl = window.location.origin + window.location.pathname.replace(/\/$/, "");
+                const studentUrl = baseUrl + '?student=' + encodeURIComponent(s.code);
                 tbody.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
                         <td class="p-3">${s.name}</td>
@@ -622,7 +639,8 @@
             document.getElementById('modal-student-name').textContent = name;
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
-            const studentUrl = window.location.origin + window.location.pathname + '?student=' + code;
+            const baseUrl = window.location.origin + window.location.pathname.replace(/\/$/, "");
+            const studentUrl = baseUrl + '?student=' + encodeURIComponent(code);
             new QRCode(qrContainer, { text: studentUrl, width: 180, height: 180 });
             document.getElementById('qr-modal').classList.remove('hidden');
         }
@@ -753,7 +771,7 @@
             alert(`تم تسجيل الغياب لـ ${count} طالب لم يحضروا اليوم.`);
         }
 
-        // بوابة الطالب مع الانتظار لجلب البيانات سحابياً بشكل صحيح
+        // بوابة الطالب مع تسجيل الحضور فوراً
         function renderStudentPortal(code) {
             const portal = document.getElementById('portal-content');
             
