@@ -6,9 +6,6 @@
     <title>نظام الحضور والاشتراكات - مستر يسر الموافي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- مكتبات Firebase السحابية -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         body {
             background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), url('https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=1920&auto=format&fit=crop');
@@ -54,36 +51,14 @@
         <main class="flex-1 p-4 max-w-6xl w-full mx-auto space-y-6">
             <!-- أزرار التنقل -->
             <div class="flex gap-2 bg-white/90 backdrop-blur p-2 rounded-xl shadow overflow-x-auto no-print">
-                <button onclick="switchTab('requests')" id="btn-requests" class="flex-1 py-2 px-4 rounded-lg bg-blue-600 text-white font-medium transition whitespace-nowrap">الطلبات الواردة (<span id="req-count">0</span>)</button>
-                <button onclick="switchTab('search')" id="btn-search" class="flex-1 py-2 px-4 rounded-lg text-gray-700 font-medium transition whitespace-nowrap">بحث شامل عن طالب</button>
+                <button onclick="switchTab('search')" id="btn-search" class="flex-1 py-2 px-4 rounded-lg bg-blue-600 text-white font-medium transition whitespace-nowrap">بحث شامل عن طالب</button>
                 <button onclick="switchTab('students')" id="btn-students" class="flex-1 py-2 px-4 rounded-lg text-gray-700 font-medium transition whitespace-nowrap">إدارة الطلاب والـ QR</button>
                 <button onclick="switchTab('subscriptions')" id="btn-subscriptions" class="flex-1 py-2 px-4 rounded-lg text-gray-700 font-medium transition whitespace-nowrap">الاشتراكات والماليات</button>
                 <button onclick="switchTab('reports')" id="btn-reports" class="flex-1 py-2 px-4 rounded-lg text-gray-700 font-medium transition whitespace-nowrap">سجل الحضور والغياب</button>
             </div>
 
-            <!-- 1. طلبات الحضور والدفع المعلقة -->
-            <div id="tab-requests" class="bg-white/95 backdrop-blur p-6 rounded-xl shadow-xl space-y-4">
-                <h3 class="text-lg font-bold text-gray-800">مراجعة طلبات الطلاب (حضور أو مدفوعات)</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-700">
-                                <th class="p-3 border">اسم الطالب</th>
-                                <th class="p-3 border">نوع الطلب</th>
-                                <th class="p-3 border">التفاصيل / الشهر</th>
-                                <th class="p-3 border">وقت الإرسال</th>
-                                <th class="p-3 border">قرارك</th>
-                            </tr>
-                        </thead>
-                        <tbody id="requests-table-body">
-                            <tr><td colspan="5" class="text-center p-4 text-gray-400">لا توجد طلبات معلقة حالياً</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 2. قسم البحث الشامل عن الطالب -->
-            <div id="tab-search" class="bg-white/95 backdrop-blur p-6 rounded-xl shadow-xl space-y-4 hidden">
+            <!-- 1. قسم البحث الشامل عن الطالب -->
+            <div id="tab-search" class="bg-white/95 backdrop-blur p-6 rounded-xl shadow-xl space-y-4">
                 <h3 class="text-lg font-bold text-gray-800">🔍 بحث شامل عن تفاصيل الطالب</h3>
                 <div class="flex gap-2 items-center">
                     <select id="master-search-select" class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
@@ -115,7 +90,7 @@
                 </div>
             </div>
 
-            <!-- 3. إدارة الطلاب والـ QR -->
+            <!-- 2. إدارة الطلاب والـ QR -->
             <div id="tab-students" class="bg-white/95 backdrop-blur p-6 rounded-xl shadow-xl space-y-4 hidden">
                 <div class="flex flex-col md:flex-row justify-between gap-4 items-center">
                     <h3 class="text-lg font-bold text-gray-800">إضافة طالب جديد وتوليد الـ QR</h3>
@@ -144,7 +119,7 @@
                 </div>
             </div>
 
-            <!-- 4. قسم الاشتراكات والماليات -->
+            <!-- 3. قسم الاشتراكات والماليات -->
             <div id="tab-subscriptions" class="bg-white/95 backdrop-blur p-6 rounded-xl shadow-xl space-y-4 hidden">
                 <div class="flex flex-wrap justify-between items-center gap-3 bg-red-50 p-4 rounded-xl border border-red-200">
                     <div>
@@ -213,7 +188,7 @@
                 </div>
             </div>
 
-            <!-- 5. تقرير الحضور والغياب -->
+            <!-- 4. تقرير الحضور والغياب -->
             <div id="tab-reports" class="bg-white/95 backdrop-blur p-6 rounded-xl shadow-xl space-y-4 hidden">
                 <div class="flex justify-between items-center no-print flex-wrap gap-2">
                     <h3 class="text-lg font-bold text-gray-800">سجل الحضور والغياب الشهري للطلاب</h3>
@@ -248,7 +223,7 @@
                     <div class="h-4 bg-gray-200 rounded w-3/4"></div>
                     <div class="h-4 bg-gray-200 rounded w-1/2"></div>
                 </div>
-                جاري الاتصال بقاعدة البيانات وجلب بيانات الطالب...
+                جاري جلب بيانات الطالب وتسجيل الحضور...
             </div>
         </div>
     </div>
@@ -311,124 +286,44 @@
     </div>
 
     <script>
-        const firebaseConfig = {
-            databaseURL: "https://yossrelmowafy-c816c-default-rtdb.firebaseio.com"
-        };
-        
-        let useCloud = false;
-        var db = null;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            useCloud = true;
-        } catch(e) {
-            console.log("العمل بوضع الذاكرة المحلية مؤقتاً.");
-        }
-
         const ADMIN_USER = "yossr_elmowafy";
         const ADMIN_PASS = "23122002YY";
 
-        let students = [];
-        let subscriptions = [];
-        let pendingRequests = [];
-        let attendanceLog = [];
-
-        function getStudentCodeFromUrl() {
-            const fullUrl = window.location.href;
-            let studentCode = null;
-
-            if (fullUrl.includes('?student=')) {
-                studentCode = fullUrl.split('?student=')[1].split('&')[0];
-            } else if (fullUrl.includes('&student=')) {
-                studentCode = fullUrl.split('&student=')[1].split('&')[0];
-            } else {
-                const urlParams = new URLSearchParams(window.location.search);
-                studentCode = urlParams.get('student');
-            }
-
-            if (studentCode) {
-                return decodeURIComponent(studentCode.trim());
-            }
-            return null;
-        }
-
-        const targetStudentCode = getStudentCodeFromUrl();
-
-        // نظام تحميل ذكي مع إعادة المحاولة التلقائية (Retry) لجلب أحدث قاعدة بيانات بدقة
-        let retryCount = 0;
-        const maxRetries = 10; // عدد محاولات الاتصال (كل محاولة 400 ملي ثانية)
-
-        function initApp() {
-            if (useCloud && db) {
-                db.ref('data').once('value', (snapshot) => {
-                    const val = snapshot.val() || {};
-                    students = val.students || [];
-                    subscriptions = val.subscriptions || [];
-                    pendingRequests = val.pendingRequests || [];
-                    attendanceLog = val.attendanceLog || [];
-                    
-                    proceedAfterDataLoad();
-                }, (error) => {
-                    console.error(error);
-                    fallbackToLocalStorage();
-                });
-            } else {
-                fallbackToLocalStorage();
-            }
-        }
-
-        function fallbackToLocalStorage() {
-            students = JSON.parse(localStorage.getItem('students')) || [];
-            subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
-            pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
-            attendanceLog = JSON.parse(localStorage.getItem('attendanceLog')) || [];
-            proceedAfterDataLoad();
-        }
-
-        function proceedAfterDataLoad() {
-            if (targetStudentCode) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.add('hidden');
-                document.getElementById('student-portal').classList.remove('hidden');
-                
-                // فحص ذكي: إذا لم يتم العثور على الطالب في أول محاولة، أعد محاولة الجلب تلقائياً لضمان اكتمال التحميل السحابي
-                const studentCheck = students.find(s => s.code === targetStudentCode);
-                if (!studentCheck && useCloud && retryCount < maxRetries) {
-                    retryCount++;
-                    setTimeout(initApp, 400); // إعادة المحاولة بعد 0.4 ثانية
-                    return;
-                }
-
-                renderStudentPortal(targetStudentCode);
-            } else {
-                if (useCloud && db) {
-                    db.ref('data').on('value', (snapshot) => {
-                        const val = snapshot.val() || {};
-                        students = val.students || [];
-                        subscriptions = val.subscriptions || [];
-                        pendingRequests = val.pendingRequests || [];
-                        attendanceLog = val.attendanceLog || [];
-                        if(!document.getElementById('dashboard').classList.contains('hidden')) {
-                            renderAll();
-                        }
-                    });
-                }
-            }
-        }
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
+        let attendanceLog = JSON.parse(localStorage.getItem('attendanceLog')) || [];
 
         function saveData() {
-            if (useCloud && db) {
-                db.ref('data').set({ students, subscriptions, pendingRequests, attendanceLog });
-            } else {
-                localStorage.setItem('students', JSON.stringify(students));
-                localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
-                localStorage.setItem('pendingRequests', JSON.stringify(pendingRequests));
-                localStorage.setItem('attendanceLog', JSON.stringify(attendanceLog));
+            localStorage.setItem('students', JSON.stringify(students));
+            localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+            localStorage.setItem('attendanceLog', JSON.stringify(attendanceLog));
+        }
+
+        // قراءة كود الطالب بدقة تامة من الرابط
+        function getStudentCodeFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let code = urlParams.get('student');
+            if (!code) {
+                const fullUrl = window.location.href;
+                if (fullUrl.includes('student=')) {
+                    code = fullUrl.split('student=')[1].split('&')[0];
+                }
             }
+            return code ? decodeURIComponent(code.trim()) : null;
         }
 
         window.onload = function() {
-            initApp();
+            const targetCode = getStudentCodeFromUrl();
+
+            if (targetCode) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+                document.getElementById('student-portal').classList.remove('hidden');
+                renderStudentPortal(targetCode);
+            } else {
+                // افتراضي عرض لوحة التحكم للمشرف
+                document.getElementById('login-screen').classList.remove('hidden');
+            }
         };
 
         function handleLogin(e) {
@@ -447,7 +342,7 @@
         function logout() { location.reload(); }
 
         function switchTab(tab) {
-            ['requests', 'search', 'students', 'subscriptions', 'reports'].forEach(t => {
+            ['search', 'students', 'subscriptions', 'reports'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
                 document.getElementById(`btn-${t}`).className = "flex-1 py-2 px-4 rounded-lg text-gray-700 font-medium transition whitespace-nowrap";
             });
@@ -485,7 +380,6 @@
             if (confirm("هل أنت متأكد من تصفير حسابات الشهر الحالي وسجلات الحضور والغياب؟ (سيتم الاحتفاظ بالطلاب وأكوادهم فقط).")) {
                 subscriptions = [];
                 attendanceLog = [];
-                pendingRequests = [];
                 saveData();
                 renderAll();
                 alert("تم تصفير الشهر بنجاح وبدء شهر جديد.");
@@ -617,7 +511,6 @@
             renderStudents();
             renderSubscriptions();
             renderAttendance();
-            renderRequests();
             updateDropdowns();
         }
 
@@ -678,13 +571,11 @@
 
         function renderSubscriptions() {
             const tbody = document.getElementById('subscriptions-table-body');
-            const filterMonth = document.getElementById('filter-sub-month')?.value || '';
             tbody.innerHTML = '';
 
             let totalSum = 0, paidSum = 0, remSum = 0;
-            const filtered = subscriptions.filter(sub => !filterMonth || sub.month === filterMonth);
 
-            filtered.forEach((sub) => {
+            subscriptions.forEach((sub) => {
                 const actualIdx = subscriptions.indexOf(sub);
                 totalSum += sub.total;
                 paidSum += sub.paid;
@@ -732,53 +623,6 @@
             });
         }
 
-        function renderRequests() {
-            const tbody = document.getElementById('requests-table-body');
-            const countSpan = document.getElementById('req-count');
-            countSpan.textContent = pendingRequests.length;
-            tbody.innerHTML = '';
-
-            if (pendingRequests.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-400">لا توجد طلبات معلقة حالياً</td></tr>`;
-                return;
-            }
-
-            pendingRequests.forEach((req, idx) => {
-                tbody.innerHTML += `
-                    <tr class="border-b text-sm">
-                        <td class="p-3 font-bold">${req.name}</td>
-                        <td class="p-3"><span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">${req.type}</span></td>
-                        <td class="p-3">${req.details}</td>
-                        <td class="p-3 text-gray-500 text-xs">${req.time}</td>
-                        <td class="p-3 flex gap-2">
-                            <button onclick="approveRequest(${idx})" class="bg-green-600 text-white px-3 py-1 rounded text-xs">موافقة</button>
-                            <button onclick="rejectRequest(${idx})" class="bg-red-600 text-white px-3 py-1 rounded text-xs">رفض</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function approveRequest(idx) {
-            const req = pendingRequests[idx];
-            attendanceLog.unshift({
-                name: req.name,
-                code: req.code,
-                date: new Date().toLocaleString('ar-EG'),
-                status: 'حاضر'
-            });
-            pendingRequests.splice(idx, 1);
-            saveData();
-            renderAll();
-            alert("تم قبول طلب الطالب وتسجيل حضوره بنجاح!");
-        }
-
-        function rejectRequest(idx) {
-            pendingRequests.splice(idx, 1);
-            saveData();
-            renderAll();
-        }
-
         function markAbsenteesForToday() {
             const todayStr = new Date().toLocaleDateString('ar-EG');
             const alreadyCheckedNames = attendanceLog.filter(a => a.date.includes(todayStr)).map(a => a.name);
@@ -800,10 +644,9 @@
             alert(`تم تسجيل الغياب لـ ${count} طالب لم يحضروا اليوم.`);
         }
 
-        // بوابة الطالب وعرض تفاصيله وتسجيل الحضور
+        // بوابة الطالب الفورية
         function renderStudentPortal(code) {
             const portal = document.getElementById('portal-content');
-            
             const student = students.find(s => s.code === code);
 
             if (!student) {
@@ -814,7 +657,7 @@
                 return;
             }
 
-            // تسجيل الحضور تلقائياً عند الـ Scan
+            // تسجيل الحضور تلقائياً فوراً
             const nowStr = new Date().toLocaleString('ar-EG');
             const todayDateOnly = nowStr.split(',')[0];
             const alreadyRecorded = attendanceLog.some(a => a.code === code && a.date.split(',')[0] === todayDateOnly);
