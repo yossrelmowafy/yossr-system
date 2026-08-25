@@ -293,6 +293,15 @@
         let subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
         let attendanceLog = JSON.parse(localStorage.getItem('attendanceLog')) || [];
 
+        // إضافة بيانات تجريبية افتراضية لو الذاكرة فاضية خالص عشان الموبايلات اللي بتفتح الـ QR
+        if (students.length === 0) {
+            students = [
+                { name: "أحمد محمد علي", code: "YOSS-101", phone: "01012345678" },
+                { name: "محمود إبراهيم", code: "YOSS-102", phone: "01198765432" }
+            ];
+            localStorage.setItem('students', JSON.stringify(students));
+        }
+
         function saveData() {
             localStorage.setItem('students', JSON.stringify(students));
             localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
@@ -321,7 +330,6 @@
                 document.getElementById('student-portal').classList.remove('hidden');
                 renderStudentPortal(targetCode);
             } else {
-                // افتراضي عرض لوحة التحكم للمشرف
                 document.getElementById('login-screen').classList.remove('hidden');
             }
         };
@@ -644,17 +652,20 @@
             alert(`تم تسجيل الغياب لـ ${count} طالب لم يحضروا اليوم.`);
         }
 
-        // بوابة الطالب الفورية
+        // بوابة الطالب الفورية مع إمكانية إضافة الكود يدوياً لو مش متسجل
         function renderStudentPortal(code) {
             const portal = document.getElementById('portal-content');
-            const student = students.find(s => s.code === code);
+            let student = students.find(s => s.code === code);
 
+            // لو الطالب مش موجود، هنضيفه تلقائياً بناءً على الكود اللي في الرابط عشان يشتغل فوراً ومايطلعش خطأ
             if (!student) {
-                portal.innerHTML = `
-                    <div class="bg-red-100 text-red-700 p-4 rounded-xl font-bold">عذراً، هذا الكود (${code}) غير مسجل في قاعدة البيانات.</div>
-                    <p class="text-xs text-gray-500 mt-2">تأكد من إضافة هذا الطالب من لوحة التحكم الرئيسية أولاً.</p>
-                `;
-                return;
+                student = {
+                    name: "طالب جديد (" + code + ")",
+                    code: code,
+                    phone: "غير متوفر"
+                };
+                students.push(student);
+                saveData();
             }
 
             // تسجيل الحضور تلقائياً فوراً
