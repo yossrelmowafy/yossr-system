@@ -248,7 +248,7 @@
                     <div class="h-4 bg-gray-200 rounded w-3/4"></div>
                     <div class="h-4 bg-gray-200 rounded w-1/2"></div>
                 </div>
-                جاري جلب بيانات الطالب من السحابة...
+                جاري الاتصال بقاعدة البيانات وجلب بيانات الطالب...
             </div>
         </div>
     </div>
@@ -334,28 +334,76 @@
         let pendingRequests = [];
         let attendanceLog = [];
 
-        // تحميل البيانات (سحابياً)
-        function loadData(callback) {
+        // التحقق من وجود كود طالب في الرابط
+        function getStudentCodeFromUrl() {
+            const fullUrl = window.location.href;
+            let studentCode = null;
+
+            if (fullUrl.includes('?student=')) {
+                studentCode = fullUrl.split('?student=')[1].split('&')[0];
+            } else if (fullUrl.includes('&student=')) {
+                studentCode = fullUrl.split('&student=')[1].split('&')[0];
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                studentCode = urlParams.get('student');
+            }
+
+            if (studentCode) {
+                return decodeURIComponent(studentCode.trim());
+            }
+            return null;
+        }
+
+        const targetStudentCode = getStudentCodeFromUrl();
+
+        // تحميل البيانات بذكاء يضمن قراءة سحابية كاملة قبل معالجة الطالب
+        function initApp() {
             if (useCloud && db) {
-                db.ref('data').on('value', (snapshot) => {
+                db.ref('data').once('value', (snapshot) => {
                     const val = snapshot.val() || {};
                     students = val.students || [];
                     subscriptions = val.subscriptions || [];
                     pendingRequests = val.pendingRequests || [];
                     attendanceLog = val.attendanceLog || [];
                     
-                    if(!document.getElementById('dashboard').classList.contains('hidden')) {
-                        renderAll();
-                    }
-                    
-                    if (callback) callback();
+                    proceedAfterDataLoad();
+                }, (error) => {
+                    console.error(error);
+                    fallbackToLocalStorage();
                 });
             } else {
-                students = JSON.parse(localStorage.getItem('students')) || [];
-                subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
-                pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
-                attendanceLog = JSON.parse(localStorage.getItem('attendanceLog')) || [];
-                if (callback) callback();
+                fallbackToLocalStorage();
+            }
+        }
+
+        function fallbackToLocalStorage() {
+            students = JSON.parse(localStorage.getItem('students')) || [];
+            subscriptions = JSON.parse(localStorage.getItem('subscriptions')) || [];
+            pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
+            attendanceLog = JSON.parse(localStorage.getItem('attendanceLog')) || [];
+            proceedAfterDataLoad();
+        }
+
+        function proceedAfterDataLoad() {
+            if (targetStudentCode) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+                document.getElementById('student-portal').classList.remove('hidden');
+                renderStudentPortal(targetStudentCode);
+            } else {
+                // تفعيل المزامنة المستمرة لو لوحة التحكم مفتوحة للمشرف
+                if (useCloud && db) {
+                    db.ref('data').on('value', (snapshot) => {
+                        const val = snapshot.val() || {};
+                        students = val.students || [];
+                        subscriptions = val.subscriptions || [];
+                        pendingRequests = val.pendingRequests || [];
+                        attendanceLog = val.attendanceLog || [];
+                        if(!document.getElementById('dashboard').classList.contains('hidden')) {
+                            renderAll();
+                        }
+                    });
+                }
             }
         }
 
@@ -371,35 +419,7 @@
         }
 
         window.onload = function() {
-            // فحص دقيق للرابط لاستخراج كود الطالب بغض النظر عن طريقة كتابة الرابط
-            const fullUrl = window.location.href;
-            let studentCode = null;
-
-            if (fullUrl.includes('?student=')) {
-                studentCode = fullUrl.split('?student=')[1].split('&')[0];
-            } else if (fullUrl.includes('&student=')) {
-                studentCode = fullUrl.split('&student=')[1].split('&')[0];
-            } else {
-                const urlParams = new URLSearchParams(window.location.search);
-                studentCode = urlParams.get('student');
-            }
-
-            if (studentCode) {
-                studentCode = decodeURIComponent(studentCode.trim());
-            }
-
-            if (studentCode) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.add('hidden');
-                document.getElementById('student-portal').classList.remove('hidden');
-                
-                // تحميل البيانات فوراً ثم فتح بوابة الطالب وتثبيت الحضور
-                loadData(() => {
-                    renderStudentPortal(studentCode);
-                });
-            } else {
-                loadData();
-            }
+            initApp();
         };
 
         function handleLogin(e) {
@@ -771,7 +791,7 @@
             alert(`تم تسجيل الغياب لـ ${count} طالب لم يحضروا اليوم.`);
         }
 
-        // بوابة الطالب مع تسجيل الحضور فوراً
+        // بوابة الطالب مع انتظار تحميل القائمة تماماً وتسجيل الحضور
         function renderStudentPortal(code) {
             const portal = document.getElementById('portal-content');
             
