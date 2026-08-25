@@ -311,7 +311,6 @@
     </div>
 
     <script>
-        // إعدادات الـ Firebase الخاصة بك
         const firebaseConfig = {
             databaseURL: "https://yossrelmowafy-c816c-default-rtdb.firebaseio.com"
         };
@@ -334,7 +333,6 @@
         let pendingRequests = [];
         let attendanceLog = [];
 
-        // التحقق من وجود كود طالب في الرابط
         function getStudentCodeFromUrl() {
             const fullUrl = window.location.href;
             let studentCode = null;
@@ -356,7 +354,10 @@
 
         const targetStudentCode = getStudentCodeFromUrl();
 
-        // تحميل البيانات بذكاء يضمن قراءة سحابية كاملة قبل معالجة الطالب
+        // نظام تحميل ذكي مع إعادة المحاولة التلقائية (Retry) لجلب أحدث قاعدة بيانات بدقة
+        let retryCount = 0;
+        const maxRetries = 10; // عدد محاولات الاتصال (كل محاولة 400 ملي ثانية)
+
         function initApp() {
             if (useCloud && db) {
                 db.ref('data').once('value', (snapshot) => {
@@ -389,9 +390,17 @@
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard').classList.add('hidden');
                 document.getElementById('student-portal').classList.remove('hidden');
+                
+                // فحص ذكي: إذا لم يتم العثور على الطالب في أول محاولة، أعد محاولة الجلب تلقائياً لضمان اكتمال التحميل السحابي
+                const studentCheck = students.find(s => s.code === targetStudentCode);
+                if (!studentCheck && useCloud && retryCount < maxRetries) {
+                    retryCount++;
+                    setTimeout(initApp, 400); // إعادة المحاولة بعد 0.4 ثانية
+                    return;
+                }
+
                 renderStudentPortal(targetStudentCode);
             } else {
-                // تفعيل المزامنة المستمرة لو لوحة التحكم مفتوحة للمشرف
                 if (useCloud && db) {
                     db.ref('data').on('value', (snapshot) => {
                         const val = snapshot.val() || {};
@@ -791,7 +800,7 @@
             alert(`تم تسجيل الغياب لـ ${count} طالب لم يحضروا اليوم.`);
         }
 
-        // بوابة الطالب مع انتظار تحميل القائمة تماماً وتسجيل الحضور
+        // بوابة الطالب وعرض تفاصيله وتسجيل الحضور
         function renderStudentPortal(code) {
             const portal = document.getElementById('portal-content');
             
